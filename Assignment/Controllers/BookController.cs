@@ -61,24 +61,20 @@ namespace Assignment.Controllers
             }
             
             var publisher = await _publisherRepo.GetPublisherFromName(bookDto.PublisherName);
-
             var bookModel = bookDto.ToBookFromCreate(publisher);
-            var savedBook = await _bookRepo.CreateAsync(bookModel);
             List<BookAuthor> bookAuthors = new List<BookAuthor>();
             foreach(var authorDto in bookDto.AuthorNames) {
                 var author = await _authorRepo.GetAuthorFromName(authorDto);
                 var bookAuthor = new BookAuthor{
-                    Book_id = savedBook.Book_id,
-                    Book = savedBook,
-                    Author_id = author.Author_id,
+                    Book = bookModel,
                     Author = author,
                     Author_order = authorDto.Author_order,
                     Royality_percentage = authorDto.Royality_percentage
                 };
-                await _bookAuthorRepo.SaveBookAuthor(bookAuthor);
                 bookAuthors.Append(bookAuthor);
             }
-            savedBook.BookAuthors = bookAuthors;
+            bookModel.BookAuthors = bookAuthors;
+            var savedBook = await _bookRepo.CreateAsync(bookModel);
             return Ok(savedBook.ToBookViewDto());
         }
         [HttpPut]
